@@ -32,6 +32,8 @@ typedef struct
 {
 	//プレイヤーが操作中か
 	bool PlayerUse;
+	//回転の起点かどうか
+	bool RolBase;
 	//ぷよの種類
 	PUYO Type;
 }PUYODATA;

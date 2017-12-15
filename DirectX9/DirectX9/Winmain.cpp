@@ -284,6 +284,8 @@ int _stdcall WinMain
 	pDi->Init(hWnd);
 
 	int frame;
+	int rol;
+	int roly, rolx;
 	float DownSpeed;
 	bool breakflag;
 	bool Downflag;
@@ -353,6 +355,7 @@ int _stdcall WinMain
 				breakflag = false;
 				Createflag = true;
 				Downflag = false;
+				rol = 0;
 
 				for (int y = 0; y < GameHeight; y++)
 				{
@@ -360,6 +363,7 @@ int _stdcall WinMain
 					{
 						PuyoData[y][x].Type = null;
 						PuyoData[y][x].PlayerUse = false;
+						PuyoData[y][x].RolBase = false;
 					}
 				}
 
@@ -405,6 +409,9 @@ int _stdcall WinMain
 
 					PuyoData[0][2].PlayerUse = true;
 					PuyoData[0][3].PlayerUse = true;
+					PuyoData[0][2].RolBase = true;
+
+					rol = 0;
 				}
 
 				DownSpeed = 1.0;
@@ -430,10 +437,12 @@ int _stdcall WinMain
 										//下のマスにデータを移行
 										PuyoData[y][x + 1].Type = PuyoData[y][x].Type;
 										PuyoData[y][x + 1].PlayerUse = PuyoData[y][x].PlayerUse;
+										PuyoData[y][x + 1].RolBase = PuyoData[y][x].RolBase;
 
 										//前のマスデータをリセット
 										PuyoData[y][x].Type = null;
 										PuyoData[y][x].PlayerUse = false;
+										PuyoData[y][x].RolBase = false;
 									}
 								}
 								else
@@ -471,10 +480,12 @@ int _stdcall WinMain
 										//下のマスにデータを移行
 										PuyoData[y][x - 1].Type = PuyoData[y][x].Type;
 										PuyoData[y][x - 1].PlayerUse = PuyoData[y][x].PlayerUse;
+										PuyoData[y][x - 1].RolBase = PuyoData[y][x].RolBase;
 
 										//前のマスデータをリセット
 										PuyoData[y][x].Type = null;
 										PuyoData[y][x].PlayerUse = false;
+										PuyoData[y][x].RolBase = false;
 									}
 								}
 								else
@@ -499,6 +510,145 @@ int _stdcall WinMain
 				else if (pDi->KeyState(DIK_UP))
 				{
 					DownSpeed = 40.0;
+				}
+				else if (pDi->KeyJustPressed(DIK_A))
+				{
+					for (int y = GameHeight - 1; y >= 0; y--)
+					{
+						for (int x = GameWidth - 1; x >= 0; x--)
+						{
+							switch (rol)
+							{
+							case 0:
+
+								roly = -1;
+								rolx = -1;
+								break;
+							case 1:
+
+								roly = 1;
+								rolx = -1;
+								break;
+							case 2:
+
+								roly = 1;
+								rolx = 1;
+								break;
+							case 3:
+
+								roly = -1;
+								rolx = 1;
+								break;
+							}
+
+
+							if (PuyoData[y + roly][x + rolx].Type == null
+								&& PuyoData[y][x].RolBase == false
+								&& PuyoData[y][x].PlayerUse == true)
+							{
+								if ((rol == 0 && y + roly < GameHeight) || (rol == 1 && x + rolx >= 0) || (rol == 3 && x + rolx < GameWidth) || rol == 2)
+								{
+									//下のマスにデータを移行
+									PuyoData[y + roly][x + rolx].Type = PuyoData[y][x].Type;
+									PuyoData[y + roly][x + rolx].PlayerUse = PuyoData[y][x].PlayerUse;
+									PuyoData[y + roly][x + rolx].RolBase = PuyoData[y][x].RolBase;
+
+									//前のマスデータをリセット
+									PuyoData[y][x].Type = null;
+									PuyoData[y][x].PlayerUse = false;
+									PuyoData[y][x].RolBase = false;
+
+
+									rol++;
+
+									if (rol > 3)
+									{
+										rol = 0;
+									}
+
+									breakflag = true;
+									break;
+								}
+							}
+						}
+
+						if (breakflag == true)
+						{
+							breakflag = false;
+							break;
+						}
+
+					}
+				}
+				else if (pDi->KeyJustPressed(DIK_D))
+				{
+					for (int y = GameHeight - 1; y >= 0; y--)
+					{
+						for (int x = GameWidth - 1; x >= 0; x--)
+						{
+							switch (rol)
+							{
+							case 0:
+
+								roly = 1;
+								rolx = -1;
+								break;
+							case 1:
+
+								roly = 1;
+								rolx = 1;
+								break;
+							case 2:
+
+								roly = -1;
+								rolx = 1;
+								break;
+							case 3:
+
+								roly = -1;
+								rolx = -1;
+								break;
+							}
+
+
+							if (PuyoData[y + roly][x + rolx].Type == null
+								&& PuyoData[y][x].RolBase == false
+								&& PuyoData[y][x].PlayerUse == true)
+							{
+								if ((rol == 2 && y + roly < GameHeight) || (rol == 3 && x + rolx >= 0) || (rol == 1 && x + rolx < GameWidth) || rol == 0)
+								{
+									//下のマスにデータを移行
+									PuyoData[y + roly][x + rolx].Type = PuyoData[y][x].Type;
+									PuyoData[y + roly][x + rolx].PlayerUse = PuyoData[y][x].PlayerUse;
+									PuyoData[y + roly][x + rolx].RolBase = PuyoData[y][x].RolBase;
+
+									//前のマスデータをリセット
+									PuyoData[y][x].Type = null;
+									PuyoData[y][x].PlayerUse = false;
+									PuyoData[y][x].RolBase = false;
+
+
+									rol--;
+
+									if (rol < 0)
+									{
+										rol = 3;
+									}
+
+									breakflag = true;
+									break;
+								}
+							}
+
+						}
+
+						if (breakflag == true)
+						{
+							breakflag = false;
+							break;
+						}
+
+					}
 				}
 					
 				if (frame > 50/ DownSpeed
@@ -539,10 +689,12 @@ int _stdcall WinMain
 									//下のマスにデータを移行
 									PuyoData[y + 1][x].Type = PuyoData[y][x].Type;
 									PuyoData[y + 1][x].PlayerUse = PuyoData[y][x].PlayerUse;
+									PuyoData[y + 1][x].RolBase = PuyoData[y][x].RolBase;
 
 									//前のマスデータをリセット
 									PuyoData[y][x].Type = null;
 									PuyoData[y][x].PlayerUse = false;
+									PuyoData[y][x].RolBase = false;
 								}
 							}
 						}
@@ -580,10 +732,12 @@ int _stdcall WinMain
 									//下のマスにデータを移行
 									PuyoData[y + 1][x].Type = PuyoData[y][x].Type;
 									PuyoData[y + 1][x].PlayerUse = PuyoData[y][x].PlayerUse;
+									PuyoData[y + 1][x].RolBase = PuyoData[y][x].RolBase;
 
 									//前のマスデータをリセット
 									PuyoData[y][x].Type = null;
 									PuyoData[y][x].PlayerUse = false;
+									PuyoData[y][x].RolBase = false;
 
 									Createflag = false;
 									Downflag = true;
