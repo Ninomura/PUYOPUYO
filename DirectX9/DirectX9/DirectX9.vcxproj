@@ -160,6 +160,7 @@
     <ClInclude Include="Direct3D.h" />
     <ClInclude Include="DirectInput.h" />
     <ClInclude Include="ExternGV.h" />
+    <ClInclude Include="PuyoDown.h" />
     <ClInclude Include="Sprite.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="Vector2D.h" />

@@ -22,9 +22,9 @@ enum Game_Mode
 //‚Õ‚æ‚ÌŽí—Þ
 enum PUYO
 {
+	green,
 	red,
 	blue,
-	green,
 	null
 };
 
@@ -36,6 +36,8 @@ typedef struct
 	bool RolBase;
 	//‚Õ‚æ‚ÌŽí—Þ
 	PUYO Type;
+	//Œq‚ª‚Á‚Ä‚é‚©‚Ç‚¤‚©
+	int Link;
 }PUYODATA;
 
 PUYODATA PuyoData[GameHeight][GameWidth];

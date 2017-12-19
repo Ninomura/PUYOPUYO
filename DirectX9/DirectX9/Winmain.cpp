@@ -12,7 +12,7 @@
 
 #include "DirectInput.h"
 
-#include"ExternGV.h"
+#include"PuyoDown.h"
 
 #include <random>
 
@@ -185,7 +185,7 @@ HRESULT MakeWindow
 	(0,						//ウィンドウ拡張スタイル
 		WC_BASIC,				//作りたいウィンドウクラス
 								//あらかじめ登録されたもの
-		_T("将棋"),			//ウィンドウのタイトル
+		_T("ぽよぽよ"),			//ウィンドウのタイトル
 		WS_OVERLAPPEDWINDOW,	//ウィンドウのスタイル
 		CW_USEDEFAULT,			//位置x座標 デフォルトの値
 		CW_USEDEFAULT,			//位置y座標 デフォルトの値
@@ -284,9 +284,10 @@ int _stdcall WinMain
 	pDi->Init(hWnd);
 
 	int frame;
-	int rol;
-	int roly, rolx;
+	int rol, roly, rolx;
 	float DownSpeed;
+
+	bool Linkflag;
 	bool breakflag;
 	bool Downflag;
 	bool Createflag;
@@ -314,6 +315,7 @@ int _stdcall WinMain
 		}
 	}
 
+	Puyo PY;
 	//初期を演算処理に設定
 	Game_Mode Mode = GameStartProcessing;
 
@@ -352,6 +354,7 @@ int _stdcall WinMain
 			case Game_Mode::GameStartProcessing:
 
 				frame = 0;
+				Linkflag = false;
 				breakflag = false;
 				Createflag = true;
 				Downflag = false;
@@ -374,6 +377,7 @@ int _stdcall WinMain
 			//プレイヤー操作（落下処理）
 			case Game_Mode::PlayerProcessing:
 
+				//ぷよの生成処理
 				if (Createflag == true)
 				{
 					Createflag = false;
@@ -386,10 +390,10 @@ int _stdcall WinMain
 						PuyoData[0][2].Type = green;
 						break;
 					case 1:
-						PuyoData[0][2].Type = blue;
+						PuyoData[0][2].Type = red;
 						break;
 					case 2:
-						PuyoData[0][2].Type = red;
+						PuyoData[0][2].Type = blue;
 						break;
 					}
 
@@ -399,25 +403,32 @@ int _stdcall WinMain
 						PuyoData[0][3].Type = green;
 						break;
 					case 1:
-						PuyoData[0][3].Type = blue;
+						PuyoData[0][3].Type = red;
 						break;
 					case 2:
-						PuyoData[0][3].Type = red;
+						PuyoData[0][3].Type = blue;
 						break;
 					}
 
-
+					//プレイヤーが操作しているぷよ
 					PuyoData[0][2].PlayerUse = true;
 					PuyoData[0][3].PlayerUse = true;
+
+					//回転の基点となるぷよ
 					PuyoData[0][2].RolBase = true;
 
+					//回転のフラグをリセット
 					rol = 0;
 				}
 
+				//落下速度のリセット
 				DownSpeed = 1.0;
 
-				if (pDi->KeyJustPressed(DIK_RIGHT))
+				//キー入力の処理
+				//移動処理
+				if (frame > 10 && pDi->KeyState(DIK_RIGHT))
 				{
+					frame = 0;
 					for (int y = GameHeight - 1; y >= 0; y--)
 					{
 						for (int x = GameWidth; x >= 0; x--)
@@ -459,8 +470,10 @@ int _stdcall WinMain
 						}
 					}
 				}
-				else if (pDi->KeyJustPressed(DIK_LEFT))
+				else if (frame > 10 && pDi->KeyState(DIK_LEFT))
 				{
+					frame = 0;
+
 					for (int y = GameHeight - 1; y >= 0; y--)
 					{
 						for (int x = 0; x < GameWidth; x++)
@@ -503,7 +516,8 @@ int _stdcall WinMain
 						}
 					}
 				}
-				else if (pDi->KeyState(DIK_DOWN))
+				
+				if (pDi->KeyState(DIK_DOWN))
 				{
 					DownSpeed = 5.0;
 				}
@@ -511,7 +525,9 @@ int _stdcall WinMain
 				{
 					DownSpeed = 40.0;
 				}
-				else if (pDi->KeyJustPressed(DIK_A))
+
+				//回転処理
+				if (pDi->KeyJustPressed(DIK_A))
 				{
 					for (int y = GameHeight - 1; y >= 0; y--)
 					{
@@ -520,22 +536,18 @@ int _stdcall WinMain
 							switch (rol)
 							{
 							case 0:
-
 								roly = -1;
 								rolx = -1;
 								break;
 							case 1:
-
 								roly = 1;
 								rolx = -1;
 								break;
 							case 2:
-
 								roly = 1;
 								rolx = 1;
 								break;
 							case 3:
-
 								roly = -1;
 								rolx = 1;
 								break;
@@ -558,13 +570,10 @@ int _stdcall WinMain
 									PuyoData[y][x].PlayerUse = false;
 									PuyoData[y][x].RolBase = false;
 
-
+									//回転のフラグを加算
 									rol++;
 
-									if (rol > 3)
-									{
-										rol = 0;
-									}
+									if (rol > 3) { rol = 0; }
 
 									breakflag = true;
 									break;
@@ -589,27 +598,22 @@ int _stdcall WinMain
 							switch (rol)
 							{
 							case 0:
-
 								roly = 1;
 								rolx = -1;
 								break;
 							case 1:
-
 								roly = 1;
 								rolx = 1;
 								break;
 							case 2:
-
 								roly = -1;
 								rolx = 1;
 								break;
 							case 3:
-
 								roly = -1;
 								rolx = -1;
 								break;
 							}
-
 
 							if (PuyoData[y + roly][x + rolx].Type == null
 								&& PuyoData[y][x].RolBase == false
@@ -630,16 +634,12 @@ int _stdcall WinMain
 
 									rol--;
 
-									if (rol < 0)
-									{
-										rol = 3;
-									}
+									if (rol < 0) { rol = 3; }
 
 									breakflag = true;
 									break;
 								}
 							}
-
 						}
 
 						if (breakflag == true)
@@ -647,7 +647,6 @@ int _stdcall WinMain
 							breakflag = false;
 							break;
 						}
-
 					}
 				}
 					
@@ -661,12 +660,10 @@ int _stdcall WinMain
 					{
 						for (int x = GameWidth; x >= 0; x--)
 						{
-							//ぷよがプレイヤーが操作できるぷよであれば
+							//ぷよがプレイヤーが操作中のぷよか
 							if (PuyoData[y][x].PlayerUse == true)
 							{
-
-								//そのぷよの下マスにぷよがあるかどうか
-								//あればプレイヤーが操作できるぷよをリセット＆落下処理
+								//下マスにぷよがあるかどうか
 								if (PuyoData[y + 1][x].Type != null)
 								{
 									Downflag = true;
@@ -684,6 +681,7 @@ int _stdcall WinMain
 									break;
 
 								}
+								//落下処理
 								else
 								{
 									//下のマスにデータを移行
@@ -704,29 +702,106 @@ int _stdcall WinMain
 							breakflag = false;
 							break;
 						}
-
 					}
 				}
 
-				if (frame > 2
-					&& Downflag == true)
+				if (frame > 10
+					&& Linkflag == true
+					&& Downflag == false)
 				{
-
+					Linkflag = false;
 					frame = 0;
+
+					//連鎖処理
+					for (int y = GameHeight - 1; y >= 0; y--)
+					{
+						for (int x = GameWidth - 1; x >= 0; x--)
+						{
+							PuyoData[y][x].Link = 0;
+						}
+					}
 
 					for (int y = GameHeight - 1; y >= 0; y--)
 					{
-						for (int x = GameWidth; x >= 0; x--)
+						for (int x = GameWidth - 1; x >= 0; x--)
 						{
-							//操作できるものでない且つ、存在している物
-							if (PuyoData[y][x].PlayerUse != true
-								&& PuyoData[y][x].Type != null)
+							if (PuyoData[y][x].Type != null)
+							{
+								if (y > 0)
+								{
+									if (PuyoData[y][x].Type == PuyoData[y - 1][x].Type)
+									{
+										PuyoData[y][x].Link++;
+										PY.Test(y - 1, x, y, x);
+									}
+								}
+
+								if (y < GameHeight - 1)
+								{
+									if (PuyoData[y][x].Type == PuyoData[y + 1][x].Type)
+									{
+										PuyoData[y][x].Link++;
+										PY.Test2(y + 1, x, y, x);
+									}
+								}
+
+								if (x < GameWidth - 1)
+								{
+									if (PuyoData[y][x].Type == PuyoData[y][x + 1].Type)
+									{
+										PuyoData[y][x].Link++;
+										PY.Test3(y, x + 1, y, x);
+									}
+								}
+
+								if (x > 0)
+								{
+									if (PuyoData[y][x].Type == PuyoData[y][x - 1].Type)
+									{
+										PuyoData[y][x].Link++;
+										PY.Test4(y, x - 1, y, x);
+									}
+								}
+							}
+						}
+					}
+
+					Createflag = true;
+					Downflag = false;
+
+					for (int y = GameHeight - 1; y >= 0; y--)
+					{
+						for (int x = GameWidth - 1; x >= 0; x--)
+						{
+							if (PuyoData[y][x].Link >= 3)
+							{
+								PuyoData[y][x].Type = null;
+								PuyoData[y][x].PlayerUse = false;
+								PuyoData[y][x].RolBase = false;
+								Createflag = false;
+								Downflag = true;
+							}
+						}
+					}
+				}
+
+				//落下処理
+				if (frame > 3
+				 && Downflag == true)
+				{
+					frame = 0;
+
+					Downflag = false;
+					Linkflag = true;
+
+					for (int y = GameHeight - 1; y >= 0; y--)
+					{
+						for (int x = GameWidth - 1; x >= 0; x--)
+						{
+							if (PuyoData[y][x].Type != null)
 							{
 								if (PuyoData[y + 1][x].Type != null)
-								{
-									Createflag = true;
-									Downflag = false;
-								}
+								{}
 								else
 								{
 									//下のマスにデータを移行
@@ -739,21 +814,11 @@ int _stdcall WinMain
 									PuyoData[y][x].PlayerUse = false;
 									PuyoData[y][x].RolBase = false;
 
-									Createflag = false;
 									Downflag = true;
-
-									breakflag = true;
-									break;
+									Linkflag = false;
 								}
 							}
 						}
-
-						if (breakflag == true)
-						{
-							breakflag = false;
-							break;
-						}
-
 					}
 				}
 
